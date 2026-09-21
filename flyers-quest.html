@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Flyers Quest – Reading & Writing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Andika:wght@400;700&family=Baloo+2:wght@600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+:root{
+  --sky:#cfefff; --sky2:#f2fbff; --card:#ffffff; --ink:#27204d; --muted:#5f5a86; --line:#dfe6f5;
+  --sun:#ffd23f; --gum:#ff5fa2; --grape:#7c4ddb; --leaf:#22b573; --tang:#ff9f1c; --ocean:#2f80ed; --coral:#f25c54;
+  --good-bg:#e3f9ee; --fix-bg:#fff1e0; --chip:#eef1fb; --input:#f7f9ff;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --sky:#16204a; --sky2:#0f1736; --card:#232c5c; --ink:#f4f2ff; --muted:#b8b6e3; --line:#34407a;
+    --good-bg:#15432f; --fix-bg:#4a321a; --chip:#2f3972; --input:#1b2450;
+  }
+}
+:root[data-theme="dark"]{
+  --sky:#16204a; --sky2:#0f1736; --card:#232c5c; --ink:#f4f2ff; --muted:#b8b6e3; --line:#34407a;
+  --good-bg:#15432f; --fix-bg:#4a321a; --chip:#2f3972; --input:#1b2450;
+}
+html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px)}
+body{
+  height:100%;margin:0;color:var(--ink);
+  background:linear-gradient(180deg,var(--sky) 0%,var(--sky2) 70%);
+  font-family:'Andika','Trebuchet MS',Verdana,sans-serif;
+  -webkit-tap-highlight-color:transparent;overscroll-behavior:none;
+}
+button{font-family:inherit;cursor:pointer;touch-action:manipulation;-webkit-user-select:none;user-select:none}
+button:focus-visible,input:focus-visible{outline:4px solid var(--ocean);outline-offset:3px}
+
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 14px;background:var(--card);border-bottom:4px solid var(--line)}
+.brand{font-family:'Baloo 2',sans-serif;font-weight:800;font-size:clamp(22px,3.4vw,30px);color:var(--grape);line-height:1;display:flex;align-items:center;gap:8px}
+.iconbtn{min-width:54px;min-height:54px;border-radius:18px;font-size:26px;background:var(--chip);border:none;display:grid;place-items:center}
+.iconbtn:active{transform:scale(.94)}
+.starpill{display:flex;align-items:center;gap:6px;background:var(--sun);color:#3b2a00;font-weight:700;font-size:22px;border-radius:999px;padding:8px 16px;min-height:50px}
+.starpill.pop{animation:pop .45s}
+
+.wrap{max-width:1040px;margin:0 auto;padding:14px 16px 28px;display:flex;flex-direction:column;gap:14px}
+.card{background:var(--card);border-radius:26px;padding:18px;border:3px solid var(--line);box-shadow:0 6px 0 var(--line)}
+
+.coach{display:flex;align-items:center;gap:10px}
+.coach svg{flex:none;width:clamp(62px,11vw,88px);height:auto;animation:bob 3.2s ease-in-out infinite}
+.coach.bounce svg{animation:hop .55s}
+.bubble{position:relative;background:var(--card);border:3px solid var(--grape);border-radius:22px;padding:10px 16px;font-weight:700;font-size:clamp(17px,2.3vw,21px);line-height:1.35}
+.bubble::before{content:"";position:absolute;left:-13px;top:50%;margin-top:-10px;border:10px solid transparent;border-right-color:var(--grape);border-left:0}
+
+.btn{min-height:58px;padding:0 24px;border-radius:20px;font-weight:700;font-size:21px;border:none;box-shadow:0 5px 0 rgba(0,0,0,.2);transition:transform .08s}
+.btn:active{transform:translateY(4px);box-shadow:0 1px 0 rgba(0,0,0,.2)}
+.btn-blue{background:var(--ocean);color:#fff}
+.btn-pink{background:var(--gum);color:#fff}
+.btn-soft{background:var(--chip);color:var(--ink)}
+
+.opt{min-height:76px;font-size:clamp(22px,2.9vw,28px);font-weight:700;border-radius:22px;background:var(--card);color:var(--ink);border:3px solid var(--line);box-shadow:0 6px 0 var(--line);padding:8px 14px;transition:transform .08s}
+.opt:active{transform:translateY(4px);box-shadow:0 2px 0 var(--line)}
+.opt.right{background:var(--leaf);color:#fff;border-color:var(--leaf);box-shadow:0 6px 0 #178a57;animation:pop .45s}
+.opt.wrong{background:var(--coral);color:#fff;border-color:var(--coral);box-shadow:0 6px 0 #b8403a;animation:shake .45s}
+.opt.dim{opacity:.4}
+
+.sentence{font-size:clamp(23px,3.3vw,33px);line-height:1.65;font-weight:700}
+.blank{display:inline-block;min-width:118px;text-align:center;border-bottom:5px dashed var(--grape);color:var(--grape);padding:0 10px;margin:0 2px}
+.blank.ok{background:var(--good-bg);color:var(--leaf);border-bottom-color:var(--leaf);border-radius:12px 12px 0 0}
+.blank.fix{background:var(--fix-bg);color:var(--tang);border-bottom-color:var(--tang);border-radius:12px 12px 0 0}
+.clue{border-radius:10px;padding:0 4px;transition:background .3s,color .3s}
+.show-clue .clue{background:var(--sun);color:#3b2a00}
+.cluebtn{margin-top:14px;min-height:50px;padding:0 18px;border-radius:16px;background:var(--chip);color:var(--ink);font-weight:700;font-size:18px;border:none}
+
+.ptitle{font-family:'Baloo 2',sans-serif;font-weight:800;font-size:clamp(24px,3.4vw,32px);line-height:1.1}
+.scorepill{background:var(--card);border:3px solid var(--sun);border-radius:999px;padding:6px 16px;font-weight:700;font-size:20px}
+.prog{height:18px;background:var(--card);border:3px solid var(--line);border-radius:999px;overflow:hidden}
+.prog>div{height:100%;background:linear-gradient(90deg,var(--leaf),var(--sun));border-radius:999px;transition:width .5s}
+.skillpill{display:inline-block;background:var(--chip);color:var(--muted);border-radius:999px;padding:4px 14px;font-weight:700;font-size:16px}
+
+.storytitle{font-family:'Baloo 2',sans-serif;font-weight:800;font-size:clamp(22px,3vw,28px);margin-bottom:6px}
+.storytext{font-size:clamp(19px,2.5vw,24px);line-height:2.05}
+.gap{display:inline-flex;align-items:center;gap:6px;min-width:100px;min-height:48px;margin:2px 3px;padding:0 12px 0 6px;border-radius:14px;border:3px dashed var(--grape);background:var(--chip);color:var(--ink);font-weight:700;font-size:inherit;vertical-align:middle;line-height:1.2}
+.gap.cur{border-style:solid;border-color:var(--gum);animation:glow 1.5s ease-in-out infinite}
+.gap.ok{border-style:solid;border-color:var(--leaf);background:var(--good-bg);color:var(--leaf)}
+.gap.fix{border-style:solid;border-color:var(--tang);background:var(--fix-bg);color:var(--tang)}
+.gapnum{background:var(--grape);color:#fff;border-radius:999px;min-width:28px;height:28px;display:inline-grid;place-items:center;font-size:16px}
+.gap.ok .gapnum{background:var(--leaf)} .gap.fix .gapnum{background:var(--tang)}
+.lbl{font-weight:700;font-size:19px;color:var(--muted);margin-bottom:8px}
+.typein{flex:1;min-width:0;font-size:22px;min-height:58px;border-radius:18px;border:3px solid var(--line);padding:0 16px;background:var(--input);color:var(--ink);font-weight:700;font-family:inherit}
+.typein:focus{outline:none;border-color:var(--ocean)}
+.typein.shake{animation:shake .4s;border-color:var(--coral)}
+.chips{display:flex;flex-wrap:wrap;gap:12px}
+.chip{min-height:58px;min-width:96px;padding:0 20px;border-radius:18px;font-size:23px;font-weight:700;background:var(--sun);color:#3b2a00;border:none;box-shadow:0 5px 0 #d6a800}
+.chip:active{transform:translateY(4px);box-shadow:0 1px 0 #d6a800}
+
+.toggle{min-height:58px;padding:0 20px;border-radius:999px;font-weight:700;font-size:19px;background:var(--card);color:var(--ink);border:3px solid var(--grape);box-shadow:0 4px 0 var(--grape)}
+.toggle.on{background:var(--grape);color:#fff}
+.toggle:active{transform:translateY(3px);box-shadow:0 1px 0 var(--grape)}
+.vb{border-radius:9px;transition:background .25s,color .25s,padding .25s}
+.vb.on{background:var(--c);color:#fff;padding:1px 7px}
+.vb.on.focus{box-shadow:0 0 0 3px var(--sun);animation:pulse 1.3s ease-in-out infinite}
+.tag{display:inline-block;font-weight:700;font-size:16px;border-radius:999px;padding:4px 14px;margin-bottom:8px}
+.now-tag{background:#d9ebff;color:#1c56b8}
+.past-tag{background:#ffe7a8;color:#7a4b00}
+.question{font-size:clamp(21px,2.8vw,27px);font-weight:700;line-height:1.6}
+.bridge{display:none;margin-top:14px;padding:12px;border-radius:18px;background:var(--chip);flex-direction:column;gap:10px}
+.bridge.show{display:flex;animation:up .3s}
+.brow{display:flex;align-items:center;flex-wrap:wrap;gap:8px;font-weight:700}
+.bw{background:var(--c);color:#fff;border-radius:12px;padding:4px 12px;font-size:20px}
+.arrow{font-size:24px}
+.qnote{font-size:16px;color:var(--muted)}
+.didtip{font-size:17px;font-weight:700}
+
+.game{text-align:left;border-radius:30px;padding:20px;color:#fff;border:none;min-height:180px;display:flex;flex-direction:column;gap:4px;box-shadow:0 8px 0 rgba(0,0,0,.2);transition:transform .08s}
+.game:active{transform:translateY(5px);box-shadow:0 3px 0 rgba(0,0,0,.2)}
+.game .emo{font-size:48px;line-height:1}
+.game .gt{font-family:'Baloo 2',sans-serif;font-weight:800;font-size:28px;line-height:1.05}
+.game .gp{font-weight:700;font-size:16px;background:rgba(255,255,255,.22);border-radius:999px;padding:2px 12px;align-self:flex-start}
+.game .gd{font-size:18px;line-height:1.3}
+.game .best{margin-top:auto;font-weight:700;font-size:17px}
+.g4{background:linear-gradient(135deg,#ff5fa2,#ff9f1c)}
+.g6{background:linear-gradient(135deg,#2f80ed,#14b8a6)}
+.g5{background:linear-gradient(135deg,#7c4ddb,#ff5fa2)}
+.shelf{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;text-align:center}
+.slot{background:var(--chip);border-radius:20px;padding:10px 6px;font-weight:700;font-size:15px}
+.slot .t{font-size:40px;line-height:1.2}
+.nameIn{font-size:20px;min-height:52px;border-radius:16px;border:3px solid var(--line);padding:0 14px;background:var(--input);color:var(--ink);font-weight:700;font-family:inherit;width:100%;max-width:260px}
+.weakbox{background:var(--fix-bg);border-radius:20px;padding:14px 16px;text-align:left}
+.weakbox li{font-size:19px;font-weight:700;margin:4px 0}
+
+.trophy{font-size:clamp(90px,16vw,140px);line-height:1;animation:hop 1s}
+.starrow{font-size:clamp(22px,3vw,30px);letter-spacing:2px;word-break:break-all}
+
+#modal{position:fixed;inset:0;background:rgba(25,18,60,.5);display:none;align-items:flex-end;justify-content:center;z-index:50;padding:14px;padding-bottom:calc(14px + env(safe-area-inset-bottom,0px))}
+#modal.show{display:flex}
+@media (min-width:768px){#modal{align-items:center}}
+.sheet{width:100%;max-width:660px;max-height:88vh;overflow-y:auto;background:var(--card);border-radius:30px;animation:up .3s}
+.sheet-head{padding:14px 22px;font-family:'Baloo 2',sans-serif;font-size:28px;font-weight:800;color:#fff}
+.ok .sheet-head{background:var(--leaf)}
+.no .sheet-head{background:var(--tang)}
+.sheet-body{padding:18px 20px 20px;display:flex;flex-direction:column;gap:14px}
+.sheet-body svg{flex:none;width:70px;height:auto}
+.helperlbl{font-weight:700;font-size:16px;color:var(--muted)}
+.rulechip{display:inline-block;background:var(--sun);color:#3b2a00;border-radius:999px;padding:6px 16px;font-weight:700;font-size:19px;margin:4px 0 8px}
+.explain{font-size:clamp(19px,2.5vw,23px);line-height:1.5}
+.explain b{color:var(--gum)}
+.answerline{font-size:20px;font-weight:700;background:var(--chip);border-radius:16px;padding:10px 14px}
+
+#fx{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:60}
+.conf{position:absolute;top:-60px;animation-name:fall;animation-timing-function:ease-in;animation-fill-mode:forwards}
+
+@keyframes fall{to{transform:translateY(115vh) rotate(560deg)}}
+@keyframes pop{0%{transform:scale(1)}40%{transform:scale(1.12)}100%{transform:scale(1)}}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-5px)}80%{transform:translateX(5px)}}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+@keyframes hop{0%{transform:translateY(0) scale(1)}35%{transform:translateY(-16px) scale(1.06)}70%{transform:translateY(0) scale(.97)}100%{transform:scale(1)}}
+@keyframes glow{0%,100%{box-shadow:0 0 0 0 rgba(255,95,162,.5)}50%{box-shadow:0 0 0 7px rgba(255,95,162,0)}}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 3px var(--sun)}50%{box-shadow:0 0 0 6px var(--sun)}}
+@keyframes up{from{transform:translateY(30px);opacity:0}to{transform:none;opacity:1}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="h-full flex flex-col">
+  <header class="topbar">
+    <button id="homeBtn" class="iconbtn" aria-label="Go to menu" style="visibility:hidden">🏠</button>
+    <div class="brand">🪁 Flyers Quest</div>
+    <div class="flex items-center gap-2">
+      <div class="starpill" id="starPill" aria-label="Total stars">⭐ <span id="starCount">0</span></div>
+      <button id="muteBtn" class="iconbtn" aria-label="Sound on or off">🔊</button>
+    </div>
+  </header>
+  <main id="screen" class="flex-1 overflow-y-auto"></main>
+</div>
+<div id="modal" role="dialog" aria-modal="true"></div>
+<div id="fx"></div>
+
+<script>
+/* ===================== PART 4 BANK (58 items, tagged) ===================== */
+const P4 = [
+/* Present simple */
+{t:"Present simple",s:"Often [[firefighters]] ___ people get out of burning buildings.",o:["help","helps","helping"],a:0,r:"More than one ➜ no -s",e:"<b>Firefighters</b> is plural (more than one), so the action word has <b>no s</b> ➜ <b>help</b>!"},
+{t:"Present simple",s:"[[My grandmother]] ___ to the market [[every Sunday]].",o:["go","goes","going"],a:1,r:"He / She / It ➜ add -s",e:"<b>My grandmother</b> is one person (she), and it happens <b>every Sunday</b> ➜ <b>goes</b>!"},
+{t:"Present simple",s:"[[Every morning]], [[the sun]] ___ over the hills.",o:["rise","rises","rising"],a:1,r:"It + every day ➜ add -s",e:"<b>The sun</b> is one thing (it) and it happens <b>every morning</b> ➜ <b>rises</b>!"},
+{t:"Present simple",s:"[[My cat]] ___ like water. She hates baths!",o:["don't","doesn't","isn't"],a:1,r:"He / She / It ➜ doesn't",e:"<b>My cat</b> is one animal (she) ➜ <b>doesn't</b> like. (I, you, we, they ➜ don't.)"},
+{t:"Present simple",s:"[[Does]] your brother ___ in the school band?",o:["play","plays","playing"],a:0,r:"Does + plain verb",e:"<b>Does</b> already has the s (do ➜ does), so the verb stays plain ➜ <b>play</b>!"},
+{t:"Present simple",s:"[[My friends and I]] often ___ football after school.",o:["play","plays","playing"],a:0,r:"We ➜ no -s",e:"<b>My friends and I</b> = <b>we</b> (more than one) ➜ <b>play</b>, with no s."},
+{t:"Present simple",s:"[[My baby sister]] ___ three teeth now.",o:["have","has","having"],a:1,r:"She ➜ has",e:"<b>My baby sister</b> is one person (she) ➜ <b>has</b>. (I, you, we, they ➜ have.)"},
+/* Present continuous */
+{t:"Present continuous",s:"Look! The monkeys [[are]] ___ bananas [[right now]].",o:["eat","eats","eating"],a:2,r:"am / is / are + -ing",e:"After <b>are</b>, and with <b>right now</b>, we add <b>-ing</b> ➜ <b>eating</b>!"},
+{t:"Present continuous",s:"[[Mr Brown]] ___ teaching maths [[at the moment]].",o:["is","are","do"],a:0,r:"He / She ➜ is + -ing",e:"<b>Mr Brown</b> is one person (he), and it's happening <b>at the moment</b> ➜ <b>is</b> teaching!"},
+{t:"Present continuous",s:"Be quiet! The baby [[is]] ___ in her room.",o:["sleep","sleeps","sleeping"],a:2,r:"is + -ing",e:"After <b>is</b>, the action word needs <b>-ing</b> ➜ <b>sleeping</b>."},
+{t:"Present continuous",s:"[[Look!]] It ___ outside, so take your umbrella.",o:["rain","rains","is raining"],a:2,r:"Look! ➜ happening now",e:"<b>Look!</b> means it is happening right now ➜ <b>is raining</b>."},
+{t:"Present continuous",s:"[[Next Saturday]] we [[are]] ___ to my cousin's party.",o:["go","goes","going"],a:2,r:"are + -ing for plans",e:"We use <b>are going</b> for a plan we have already made for <b>next Saturday</b>."},
+/* Past simple */
+{t:"Past simple",s:"[[Yesterday]], Katy ___ a picture of a dragon.",o:["draws","drew","drawing"],a:1,r:"Yesterday ➜ past",e:"<b>Yesterday</b> is in the past. <b>Draw</b> is a special verb — its past is <b>drew</b>."},
+{t:"Past simple",s:"We ___ a big castle [[last summer]].",o:["visit","visits","visited"],a:2,r:"last summer ➜ add -ed",e:"<b>Last summer</b> is finished — that's the past! Add <b>-ed</b> ➜ <b>visited</b>."},
+{t:"Past simple",s:"[[Last night]] I ___ a funny film about a robot.",o:["watch","watched","watching"],a:1,r:"last night ➜ add -ed",e:"<b>Last night</b> is finished ➜ <b>watched</b>."},
+{t:"Past simple",s:"We ___ to the beach [[last weekend]], but it rained.",o:["go","went","going"],a:1,r:"go ➜ went",e:"<b>Go</b> is a special verb. Its past is <b>went</b>, not 'goed'."},
+{t:"Past simple",s:"[[Did]] you ___ the parrot at the zoo [[yesterday]]?",o:["see","saw","seen"],a:0,r:"Did + plain verb",e:"<b>Did</b> is already past, so the verb stays plain ➜ Did you <b>see</b>?"},
+{t:"Past simple",s:"She [[didn't]] ___ her homework last night.",o:["did","does","do"],a:2,r:"didn't + plain verb",e:"<b>Didn't</b> carries the past, so we use the plain verb ➜ didn't <b>do</b>."},
+{t:"Past simple",s:"My cousins ___ me a postcard from Da Nang [[two weeks ago]].",o:["send","sent","sending"],a:1,r:"ago ➜ past",e:"<b>Two weeks ago</b> is finished. <b>Send</b> becomes <b>sent</b>."},
+/* Past continuous */
+{t:"Past continuous",s:"[[While]] Sam ___ his bike, he saw a rainbow.",o:["rode","was riding","rides"],a:1,r:"while + was/were + -ing",e:"The long action gets <b>was riding</b>; the short surprise gets <b>saw</b>."},
+{t:"Past continuous",s:"They [[were]] ___ in the garden when it started to rain.",o:["play","plays","playing"],a:2,r:"were + -ing",e:"After <b>were</b>, the action word needs <b>-ing</b> ➜ <b>playing</b>."},
+{t:"Past continuous",s:"What ___ you doing [[at eight o'clock last night]]?",o:["are","were","did"],a:1,r:"you ➜ were + -ing",e:"<b>Doing</b> needs was or were, and <b>you</b> takes <b>were</b>."},
+/* Present perfect */
+{t:"Present perfect",s:"I [[have]] ___ my keys! I can't open the door.",o:["lose","lost","losing"],a:1,r:"have + past participle",e:"After <b>have</b> we use the third form: lose ➜ <b>lost</b>."},
+{t:"Present perfect",s:"She has [[never]] ___ an elephant.",o:["saw","seen","see"],a:1,r:"never + seen",e:"After <b>has never</b> we use <b>seen</b> (see ➜ saw ➜ seen)."},
+{t:"Present perfect",s:"We have ___ eaten lunch, so we aren't hungry.",o:["already","yet","ever"],a:0,r:"already = it's done",e:"<b>Already</b> means it happened before now. (Yet is for questions and 'not yet'.)"},
+{t:"Present perfect",s:"Have you finished your dinner ___?",o:["yet","already","just"],a:0,r:"question ➜ yet at the end",e:"In questions we put <b>yet</b> at the end ➜ Have you finished <b>yet</b>?"},
+/* Future */
+{t:"Future",s:"Tomorrow we are [[going to]] ___ a chocolate cake.",o:["bake","bakes","baking"],a:0,r:"going to + plain verb",e:"After <b>going to</b>, use the plain action word ➜ <b>bake</b>!"},
+{t:"Future",s:"[[Look at those clouds!]] It ___ rain soon.",o:["is going to","goes","went"],a:0,r:"I can see it coming ➜ going to",e:"We can see the clouds now, so we say <b>is going to</b> rain."},
+{t:"Future",s:"I think it ___ be sunny [[tomorrow]].",o:["will","would","was"],a:0,r:"I think + will",e:"For what we think about <b>tomorrow</b>, we use <b>will</b> ➜ it <b>will</b> be sunny."},
+/* Modals */
+{t:"Modal verbs",s:"Richard [[can]] ___ really fast in the sea.",o:["swim","swims","swimming"],a:0,r:"can + plain verb",e:"After <b>can</b>, the verb stays plain — no -s, no -ing ➜ <b>swim</b>!"},
+{t:"Modal verbs",s:"[[Penguins]] ___ fly, but they are great swimmers.",o:["can't","doesn't","isn't"],a:0,r:"can't + plain verb",e:"<b>Penguins</b> is plural, so doesn't is wrong, and 'isn't fly' is wrong too ➜ <b>can't</b> fly."},
+{t:"Modal verbs",s:"You ___ wear a helmet when you ride a bike. [[It's the rule!]]",o:["must","mustn't","needn't"],a:0,r:"rule ➜ must",e:"A rule you have to follow uses <b>must</b>."},
+{t:"Modal verbs",s:"We ___ run in the museum. [[It isn't allowed.]]",o:["must","mustn't","should"],a:1,r:"not allowed ➜ mustn't",e:"When something <b>isn't allowed</b>, we say <b>mustn't</b>."},
+{t:"Modal verbs",s:"___ I have a glass of water, [[please]]?",o:["Could","Should","Must"],a:0,r:"polite ask ➜ Could",e:"To ask politely we start with <b>Could</b> ➜ Could I have…?"},
+{t:"Modal verbs",s:"You [[look tired]]. You ___ go to bed early.",o:["should","mustn't","can't"],a:0,r:"good advice ➜ should",e:"For friendly advice we use <b>should</b>."},
+{t:"Modal verbs",s:"[[Would you like]] ___ a sandwich?",o:["eat","eating","to eat"],a:2,r:"would like + to + verb",e:"After <b>would like</b> we use <b>to</b> + verb ➜ <b>to eat</b>."},
+/* Verb patterns */
+{t:"Verb + -ing / to",s:"I really [[enjoy]] ___ stories about space.",o:["read","reads","reading"],a:2,r:"enjoy + -ing",e:"After <b>enjoy</b> (and like, love, hate) we use the <b>-ing</b> word ➜ <b>reading</b>."},
+{t:"Verb + -ing / to",s:"I [[want]] ___ a doctor when I grow up.",o:["be","to be","being"],a:1,r:"want + to + verb",e:"After <b>want</b> we use <b>to</b> + verb ➜ want <b>to be</b>."},
+{t:"Verb + -ing / to",s:"She's very [[good at]] ___ pictures of horses.",o:["draw","draws","drawing"],a:2,r:"good at + -ing",e:"After a preposition like <b>at</b>, the verb takes <b>-ing</b> ➜ <b>drawing</b>."},
+/* Comparatives */
+{t:"Comparing things",s:"A giraffe is ___ [[than]] a horse.",o:["tall","taller","tallest"],a:1,r:"than ➜ -er",e:"The word <b>than</b> tells us to compare two things ➜ <b>taller</b> than."},
+{t:"Comparing things",s:"This is [[the]] ___ book [[in the library]]!",o:["funny","funnier","funniest"],a:2,r:"the + -est",e:"<b>The</b> + <b>in the library</b> means number one of all ➜ <b>funniest</b>."},
+{t:"Comparing things",s:"My bag is [[as]] ___ [[as]] yours.",o:["heavy","heavier","heaviest"],a:0,r:"as … as ➜ plain adjective",e:"Between <b>as … as</b> the adjective doesn't change ➜ as <b>heavy</b> as."},
+{t:"Comparing things",s:"Ben swims ___ than his sister, so he always wins.",o:["good","well","better"],a:2,r:"well ➜ better",e:"We compare how he swims, and <b>well</b> becomes <b>better</b> (not 'gooder')."},
+/* Quantifiers */
+{t:"How much / how many",s:"There aren't ___ apples left in the bowl.",o:["some","any","much"],a:1,r:"negative ➜ any",e:"After <b>aren't</b> we use <b>any</b> ➜ there aren't <b>any</b> apples."},
+{t:"How much / how many",s:"How ___ water do you drink every day?",o:["many","much","lot"],a:1,r:"water = can't count ➜ much",e:"We can't count water, so we ask <b>How much</b>. (Count things ➜ how many.)"},
+{t:"How much / how many",s:"There are ___ children in the playground today.",o:["much","a lot of","any"],a:1,r:"lots of things ➜ a lot of",e:"With plural things in a positive sentence we use <b>a lot of</b>."},
+/* Prepositions */
+{t:"Prepositions",s:"My birthday is ___ [[October]].",o:["in","on","at"],a:0,r:"months ➜ in",e:"Months and years use <b>in</b> ➜ <b>in</b> October, <b>in</b> 2026."},
+{t:"Prepositions",s:"We usually meet ___ [[4 o'clock]] near the gate.",o:["at","on","in"],a:0,r:"clock times ➜ at",e:"Clock times use <b>at</b> ➜ <b>at</b> 4 o'clock."},
+{t:"Prepositions",s:"The cat is hiding ___ the sofa, so I can't see her.",o:["between","under","along"],a:1,r:"below something ➜ under",e:"Hiding below the sofa means <b>under</b> the sofa."},
+/* Conjunctions */
+{t:"Joining words",s:"I was very tired, ___ I went to bed early.",o:["so","but","or"],a:0,r:"so = that's why",e:"Tired is the reason, so early bed is the result ➜ <b>so</b>."},
+{t:"Joining words",s:"She was reading ___ her brother was sleeping.",o:["while","because","but"],a:0,r:"two actions together ➜ while",e:"Both things happened at the same time ➜ <b>while</b>."},
+{t:"Joining words",s:"We took an umbrella ___ it was raining.",o:["because","so","but"],a:0,r:"because = the reason",e:"The rain is the <b>reason</b> for the umbrella ➜ <b>because</b>."},
+/* Pronouns */
+{t:"Pronouns",s:"That's Anna. Do you know ___?",o:["she","her","hers"],a:1,r:"after the verb ➜ her",e:"After <b>know</b> we use <b>her</b>, not she. (She does things; we do things to her.)"},
+{t:"Pronouns",s:"This isn't my coat. I think it's ___.",o:["your","yours","you"],a:1,r:"no noun after ➜ yours",e:"There's no noun after it, so we use <b>yours</b> ➜ it's <b>yours</b>. (your coat / yours)"},
+/* Articles */
+{t:"a / an / the",s:"I saw ___ owl in the tree last night.",o:["a","an","the"],a:1,r:"vowel sound ➜ an",e:"<b>Owl</b> starts with an o sound, so we say <b>an</b> owl."},
+{t:"a / an / the",s:"She plays ___ guitar every evening.",o:["a","the","an"],a:1,r:"instruments ➜ the",e:"With musical instruments we say <b>the</b> ➜ play <b>the</b> guitar, play <b>the</b> piano."},
+/* Relative clauses */
+{t:"who / which",s:"A doctor is a person ___ helps sick people.",o:["who","which","where"],a:0,r:"people ➜ who",e:"For a <b>person</b> we use <b>who</b>."},
+{t:"who / which",s:"I like the dress ___ has yellow flowers on it.",o:["who","which","whose"],a:1,r:"things ➜ which",e:"For a <b>thing</b> like a dress we use <b>which</b>."},
+/* Imperatives */
+{t:"Imperatives",s:"___ be late for school tomorrow!",o:["Don't","Doesn't","Not"],a:0,r:"telling ➜ Don't",e:"To tell someone not to do something we start with <b>Don't</b>."},
+{t:"Imperatives",s:"___ go swimming this afternoon!",o:["Let's","Lets us","We"],a:0,r:"suggestion ➜ Let's",e:"To suggest doing something together we say <b>Let's</b> + plain verb."},
+/* Adverbs */
+{t:"Adverbs",s:"Ben runs very ___ and always wins the race.",o:["quick","quickly","quicker"],a:1,r:"how? ➜ -ly",e:"This word tells us <b>how</b> he runs, so we add <b>-ly</b> ➜ <b>quickly</b>."},
+{t:"Adverbs",s:"Please listen ___ to the question.",o:["careful","carefully","care"],a:1,r:"how? ➜ -ly",e:"It tells us <b>how</b> to listen ➜ <b>carefully</b>."}
+];
+
+/* ===================== PART 6 BANK (8 stories) ===================== */
+const P6 = [
+{title:"A Day at the Zoo 🦁",
+ text:"Last Saturday, Harry went to the zoo {0} his dad. First, they saw {1} elephant with a very long trunk. When they got to the lions, the zookeeper {2} feeding them. Harry asked, “{3} lions eat vegetables?” The zookeeper laughed. “No! {4} only eat meat!”",
+ blanks:[
+ {a:"with",o:["with","on","at"],t:"Prepositions",r:"go with + a person",e:"We go somewhere <b>with</b> a person ➜ to the zoo <b>with</b> his dad."},
+ {a:"an",o:["a","an","the"],t:"a / an / the",r:"vowel sound ➜ an",e:"<b>Elephant</b> starts with an e sound ➜ <b>an</b> elephant, like <b>an</b> apple."},
+ {a:"was",o:["was","were","is"],t:"Past continuous",r:"one person, past ➜ was",e:"The story is in the past and <b>the zookeeper</b> is one person ➜ <b>was</b> feeding."},
+ {a:"Do",o:["Do","Does","Are"],t:"Present simple",r:"plural + Do …?",e:"<b>Lions</b> is plural and the verb <b>eat</b> is plain ➜ start with <b>Do</b>."},
+ {a:"They",o:["They","Them","Their"],t:"Pronouns",r:"start of sentence ➜ They",e:"We need a word for <b>the lions</b> at the start ➜ <b>They</b> only eat meat."}]},
+{title:"My Rabbit Snowy 🐰",
+ text:"I have a white rabbit. {0} name is Snowy. She lives {1} a little wooden house in our garden. Every morning, I give {2} fresh carrots. Snowy {3} like loud noises, so we are always quiet near her house. I think she is {4} best pet in the world!",
+ blanks:[
+ {a:"Her",o:["Her","She","His"],t:"Pronouns",r:"belongs to a girl ➜ her",e:"The name belongs to Snowy, a girl rabbit ➜ <b>Her</b> name."},
+ {a:"in",o:["in","at","to"],t:"Prepositions",r:"inside ➜ in",e:"Snowy is inside the little house ➜ lives <b>in</b> a house."},
+ {a:"her",o:["her","she","hers"],t:"Pronouns",r:"give + her",e:"After <b>give</b> we say <b>her</b>, not she ➜ I give <b>her</b> carrots."},
+ {a:"doesn't",alt:["does not","doesnt"],o:["doesn't","don't","isn't"],t:"Present simple",r:"She ➜ doesn't + verb",e:"Snowy = she ➜ <b>doesn't</b> like loud noises."},
+ {a:"the",o:["the","a","an"],t:"Comparing things",r:"the + best",e:"Before <b>best</b> (number one) we always use <b>the</b>."}]},
+{title:"The Space Museum 🚀",
+ text:"There {0} lots of rockets at the space museum. Emma and Sally went there {1} Tuesday. Emma loves rockets, {2} she wants to be an astronaut. “What {3} you want to be?” she asked Sally. “I want to {4} a scientist!” said Sally.",
+ blanks:[
+ {a:"are",o:["are","is","be"],t:"How much / how many",r:"There are + plural",e:"<b>Lots of rockets</b> is plural ➜ There <b>are</b>."},
+ {a:"on",o:["on","in","at"],t:"Prepositions",r:"days ➜ on",e:"Days of the week use <b>on</b> ➜ <b>on</b> Tuesday."},
+ {a:"so",o:["so","but","or"],t:"Joining words",r:"so = that's why",e:"She loves rockets — that's why she wants to be an astronaut ➜ <b>so</b>."},
+ {a:"do",o:["do","does","are"],t:"Present simple",r:"you + do",e:"<b>You</b> + want ➜ What <b>do</b> you want?"},
+ {a:"be",o:["be","is","being"],t:"Verb + -ing / to",r:"want to + plain verb",e:"After <b>want to</b> we use the plain verb ➜ <b>be</b>."}]},
+{title:"The Football Match ⚽",
+ text:"Last Friday, my class played a football match {0} Class 5B. It {1} the most exciting game of the year! Sam is the tallest boy in our team, {2} he always scores goals. {3} half time, we were winning 2–1. At the end, our teacher gave {4} all a cold drink.",
+ blanks:[
+ {a:"against",o:["against","from","of"],t:"Prepositions",r:"play against a team",e:"In sport we play <b>against</b> the other team."},
+ {a:"was",o:["was","were","is"],t:"Past simple",r:"It ➜ was",e:"<b>It</b> is one thing and the story is past ➜ <b>was</b>."},
+ {a:"so",o:["so","but","because"],t:"Joining words",r:"so = that's why",e:"He is the tallest — that's why he scores ➜ <b>so</b>."},
+ {a:"At",o:["At","In","On"],t:"Prepositions",r:"at + a point of time",e:"We say <b>at</b> half time, <b>at</b> lunchtime, <b>at</b> 3 o'clock."},
+ {a:"us",o:["we","us","our"],t:"Pronouns",r:"after the verb ➜ us",e:"After <b>gave</b> we use <b>us</b>, not we."}]},
+{title:"A Rainy Camping Trip 🏕️",
+ text:"Molly and her dad went camping {0} the mountains. On the first night it rained a lot, so they {1} stay inside the tent. “There isn't {2} milk for our tea,” said Dad. Molly laughed. “Don't worry! I {3} some juice in my bag.” The next morning, the sun {4} shining and they made pancakes.",
+ blanks:[
+ {a:"in",o:["in","on","of"],t:"Prepositions",r:"in the mountains",e:"We say <b>in</b> the mountains, like <b>in</b> the forest."},
+ {a:"had to",alt:["had"],o:["had to","must","can"],t:"Modal verbs",r:"past + no choice ➜ had to",e:"The past of <b>must</b> is <b>had to</b>."},
+ {a:"any",o:["any","some","many"],t:"How much / how many",r:"isn't ➜ any",e:"After <b>isn't</b> we use <b>any</b> ➜ there isn't <b>any</b> milk."},
+ {a:"have",o:["have","has","am"],t:"Present simple",r:"I ➜ have",e:"<b>I</b> always goes with <b>have</b> (he / she ➜ has)."},
+ {a:"was",o:["was","were","is"],t:"Past continuous",r:"the sun ➜ was + -ing",e:"<b>The sun</b> is one thing and the story is past ➜ <b>was</b> shining."}]},
+{title:"Grandpa's Noodle Soup 🍜",
+ text:"My grandpa cooks the {0} noodle soup in the world. He learned {1} make it when he was ten years old. First, he puts {2} onion and some carrots in a big pot. “You {3} add too much salt,” he always tells me. When the soup {4} ready, the whole house smells wonderful.",
+ blanks:[
+ {a:"best",o:["best","better","good"],t:"Comparing things",r:"the + best",e:"<b>In the world</b> means number one ➜ the <b>best</b>."},
+ {a:"to",o:["to","for","at"],t:"Verb + -ing / to",r:"learn to + verb",e:"After <b>learn</b> we use <b>to</b> + verb ➜ learned <b>to</b> make."},
+ {a:"an",o:["a","an","some"],t:"a / an / the",r:"vowel sound ➜ an",e:"<b>Onion</b> starts with an o sound ➜ <b>an</b> onion."},
+ {a:"mustn't",alt:["must not","mustnt"],o:["mustn't","must","can"],t:"Modal verbs",r:"don't do it ➜ mustn't",e:"He is telling me not to do it ➜ <b>mustn't</b> add too much salt."},
+ {a:"is",o:["is","are","be"],t:"Present simple",r:"the soup ➜ is",e:"<b>The soup</b> is one thing ➜ <b>is</b> ready."}]},
+{title:"The Lost Kitten 🐱",
+ text:"Yesterday, Jack found a tiny kitten {0} was sitting under his car. It was hungry, so he gave {1} some milk. “Can we keep the kitten?” Jack asked his mum. “We {2} find its owner first,” she said. They put a photo on the internet, and {3} hour later a girl called Lily came to their house. She was {4} happy to see her kitten again!",
+ blanks:[
+ {a:"which",alt:["that"],o:["which","who","where"],t:"who / which",r:"animals & things ➜ which",e:"A kitten is not a person, so we use <b>which</b> (or that)."},
+ {a:"it",o:["it","its","him"],t:"Pronouns",r:"after the verb ➜ it",e:"After <b>gave</b> we use <b>it</b> for the kitten."},
+ {a:"must",o:["must","mustn't","can't"],t:"Modal verbs",r:"important ➜ must",e:"It is important to do it first ➜ we <b>must</b> find its owner."},
+ {a:"an",o:["an","a","the"],t:"a / an / the",r:"hour sounds like 'our' ➜ an",e:"The h in <b>hour</b> is silent, so it sounds like a vowel ➜ <b>an</b> hour."},
+ {a:"so",o:["so","too","much"],t:"Adverbs",r:"so + adjective",e:"<b>So happy</b> means very happy. (Too happy would mean it's a problem!)"}]},
+{title:"Sports Day 🏃",
+ text:"Our school sports day is {0} Saturday. Emma has been practising {1} three weeks because she wants to win the running race. “Have you ever {2} a medal?” I asked her. “Not {3},” she said, “but I run faster {4} my big brother now!”",
+ blanks:[
+ {a:"on",o:["on","in","at"],t:"Prepositions",r:"days ➜ on",e:"Days use <b>on</b> ➜ <b>on</b> Saturday."},
+ {a:"for",o:["for","since","from"],t:"Present perfect",r:"how long ➜ for",e:"<b>For</b> tells us how long: for three weeks, for an hour."},
+ {a:"won",o:["won","win","winning"],t:"Present perfect",r:"Have you ever + third form",e:"After <b>Have you ever</b> we use <b>won</b> (win ➜ won ➜ won)."},
+ {a:"yet",o:["yet","already","ever"],t:"Present perfect",r:"Not yet",e:"<b>Not yet</b> means it hasn't happened up to now."},
+ {a:"than",o:["than","then","as"],t:"Comparing things",r:"faster than",e:"When we compare two people we use <b>than</b> ➜ faster <b>than</b> my brother."}]}
+];
+
+/* ===================== PART 5 BANK (8 stories) ===================== */
+const P5 = [
+{title:"Paul's Camping Night 🏕️",
+ text:"Paul {lives#live} in a small village near a forest. Every summer, he {goes#go} camping with his uncle. This year, they {take#take} a new tent. It {is#be} big and green. On the first night, Paul {hears#hear} a strange noise outside. He {sees#see} two bright eyes in the dark! His uncle {laughs#laugh} and {says#say}, “Don't worry! It's only an owl. Owls {make#make} funny noises at night.”",
+ pairs:{live:{now:"lives",past:"lived"},go:{now:"goes",past:"went",q:"did … go"},take:{now:"take",past:"took"},be:{now:"is",past:"was"},hear:{now:"hears",past:"heard",q:"did … hear"},see:{now:"sees",past:"saw",q:"did … see"},laugh:{now:"laughs",past:"laughed"},say:{now:"says",past:"said"},make:{now:"make",past:"made"}},
+ qs:[
+ {q:"Who {went#go} camping with Paul?",o:["his uncle","his dad","his teacher"],a:0,k:"go",say:"Paul <b>went</b> camping with <b>his uncle</b>."},
+ {q:"What colour {was#be} the new tent?",o:["green","red","blue"],a:0,k:"be",say:"The tent <b>was</b> big and <b>green</b>."},
+ {q:"What {did#hear} Paul {hear#hear} on the first night?",o:["a strange noise","a loud song","a big storm"],a:0,k:"hear",say:"Paul <b>heard</b> <b>a strange noise</b> outside."},
+ {q:"What {did#see} Paul {see#see} in the dark? <span class=\"skillpill\">write 3 words</span>",type:"type",acc:["two bright eyes","bright eyes","two eyes"],o:["two bright eyes","a small fire","a torch"],a:0,k:"see",say:"He <b>saw</b> <b>two bright eyes</b> in the dark."},
+ {q:"Which animal {made#make} the funny noise? <span class=\"skillpill\">write 1–2 words</span>",type:"type",acc:["an owl","owl","owls"],o:["an owl","a bear","a cat"],a:0,k:"make",say:"<b>An owl</b> <b>made</b> the funny noise."}]},
+{title:"Katy's Pancake Sunday 🥞",
+ text:"On Sunday morning, Katy {wakes#wake} up very early. She {wants#want} to make pancakes for her family. She {finds#find} eggs, milk and flour in the kitchen. Her little brother Robert {helps#help} her, but he {drops#drop} an egg on the floor! Oops! Then they {eat#eat} the pancakes with honey, and everyone {feels#feel} happy.",
+ pairs:{wake:{now:"wakes",past:"woke",q:"did … wake"},want:{now:"wants",past:"wanted",q:"did … want"},find:{now:"finds",past:"found"},help:{now:"helps",past:"helped"},drop:{now:"drops",past:"dropped",q:"did … drop"},eat:{now:"eat",past:"ate",q:"did … eat"},feel:{now:"feels",past:"felt"}},
+ qs:[
+ {q:"When {did#wake} Katy {wake#wake} up early?",o:["on Sunday morning","on Monday night","on Saturday afternoon"],a:0,k:"wake",say:"Katy <b>woke</b> up early <b>on Sunday morning</b>."},
+ {q:"What {did#want} Katy {want#want} to make? <span class=\"skillpill\">write 1 word</span>",type:"type",acc:["pancakes","pancake"],o:["pancakes","a birthday cake","soup"],a:0,k:"want",say:"She <b>wanted</b> to make <b>pancakes</b>."},
+ {q:"Who {helped#help} Katy in the kitchen?",o:["her brother Robert","her mum","her friend"],a:0,k:"help",say:"<b>Her brother Robert</b> <b>helped</b> her."},
+ {q:"What {did#drop} Robert {drop#drop} on the floor? <span class=\"skillpill\">write 2 words</span>",type:"type",acc:["an egg","egg","one egg"],o:["an egg","the milk","a plate"],a:0,k:"drop",say:"Robert <b>dropped</b> <b>an egg</b> on the floor."},
+ {q:"What {did#eat} they {eat#eat} the pancakes with?",o:["honey","jam","ice cream"],a:0,k:"eat",say:"They <b>ate</b> the pancakes with <b>honey</b>."}]},
+{title:"The Pirate Map 🏴‍☠️",
+ text:"Oliver and Sophia {are#be} on a boat with Captain Jack. They {sail#sail} to a small island. On the beach, Sophia {finds#find} an old map under a rock. The map {shows#show} a big X next to a tall tree. Oliver {digs#dig} a hole, and they {discover#discover} a box full of gold coins! Captain Jack {gives#give} each child one coin to take home.",
+ pairs:{be:{now:"are",past:"were"},sail:{now:"sail",past:"sailed",q:"did … sail"},find:{now:"finds",past:"found",q:"did … find"},show:{now:"shows",past:"showed"},dig:{now:"digs",past:"dug"},discover:{now:"discover",past:"discovered",q:"did … discover"},give:{now:"gives",past:"gave",q:"did … give"}},
+ qs:[
+ {q:"Who {were#be} the children with on the boat?",o:["Captain Jack","their teacher","a mermaid"],a:0,k:"be",say:"They <b>were</b> on a boat with <b>Captain Jack</b>."},
+ {q:"Where {did#sail} they {sail#sail} to? <span class=\"skillpill\">write 3 words</span>",type:"type",acc:["a small island","small island","an island","island"],o:["a small island","a big city","a castle"],a:0,k:"sail",say:"They <b>sailed</b> to <b>a small island</b>."},
+ {q:"What {did#find} Sophia {find#find} under a rock?",o:["an old map","a gold coin","a shell"],a:0,k:"find",say:"Sophia <b>found</b> <b>an old map</b> under a rock."},
+ {q:"Who {dug#dig} the hole?",o:["Oliver","Sophia","Captain Jack"],a:0,k:"dig",say:"<b>Oliver</b> <b>dug</b> the hole."},
+ {q:"What {did#discover} they {discover#discover} in the box? <span class=\"skillpill\">write 2 words</span>",type:"type",acc:["gold coins","coins","gold"],o:["gold coins","old shoes","a letter"],a:0,k:"discover",say:"They <b>discovered</b> a box full of <b>gold coins</b>."}]},
+{title:"Emma's Piano Lesson 🎹",
+ text:"Every Tuesday after school, Emma {has#have} a piano lesson. Her teacher, Mr Green, {is#be} very tall and he always {wears#wear} a funny red hat. Today Emma {plays#play} a new song about a river. She {makes#make} two mistakes, but Mr Green {smiles#smile} and {says#say}, “That is beautiful!” After the lesson, Emma {walks#walk} home with her mum and they {buy#buy} ice cream.",
+ pairs:{have:{now:"has",past:"had",q:"did … have"},be:{now:"is",past:"was"},wear:{now:"wears",past:"wore",q:"did … wear"},play:{now:"plays",past:"played"},make:{now:"makes",past:"made",q:"did … make"},smile:{now:"smiles",past:"smiled"},say:{now:"says",past:"said"},walk:{now:"walks",past:"walked"},buy:{now:"buy",past:"bought",q:"did … buy"}},
+ qs:[
+ {q:"When {did#have} Emma {have#have} her piano lesson?",o:["every Tuesday","every Sunday","every Friday"],a:0,k:"have",say:"Emma <b>had</b> a piano lesson <b>every Tuesday</b> after school."},
+ {q:"What {was#be} her teacher's name? <span class=\"skillpill\">write 2 words</span>",type:"type",acc:["mr green","mister green","green"],o:["Mr Green","Mr Brown","Mr River"],a:0,k:"be",say:"Her teacher <b>was</b> <b>Mr Green</b>."},
+ {q:"What {did#wear} Mr Green always {wear#wear}?",o:["a funny red hat","a blue coat","big glasses"],a:0,k:"wear",say:"He <b>wore</b> <b>a funny red hat</b>."},
+ {q:"How many mistakes {did#make} Emma {make#make}? <span class=\"skillpill\">write 1 word</span>",type:"type",acc:["two","2"],o:["two","five","none"],a:0,k:"make",say:"She <b>made</b> <b>two</b> mistakes."},
+ {q:"What {did#buy} Emma and her mum {buy#buy}?",o:["ice cream","a new song","a red hat"],a:0,k:"buy",say:"They <b>bought</b> <b>ice cream</b>."}]},
+{title:"The Snowman 🌨️",
+ text:"It {is#be} Saturday, and snow {falls#fall} all night. In the morning, Lily and her brother Tom {run#run} into the garden. They {build#build} a big snowman with three balls of snow. Lily {gives#give} it her old blue scarf, and Tom {puts#put} a carrot on its face for a nose. A little bird {sits#sit} on the snowman's head and {sings#sing} a song.",
+ pairs:{be:{now:"is",past:"was"},fall:{now:"falls",past:"fell",q:"did … fall"},run:{now:"run",past:"ran"},build:{now:"build",past:"built",q:"did … build"},give:{now:"gives",past:"gave",q:"did … give"},put:{now:"puts",past:"put",q:"did … put"},sit:{now:"sits",past:"sat"},sing:{now:"sings",past:"sang"}},
+ qs:[
+ {q:"What {did#build} Lily and Tom {build#build} in the garden?",o:["a big snowman","a snow castle","a bird house"],a:0,k:"build",say:"They <b>built</b> <b>a big snowman</b>."},
+ {q:"What {did#give} Lily {give#give} the snowman? <span class=\"skillpill\">write 3–4 words</span>",type:"type",acc:["her old blue scarf","old blue scarf","a blue scarf","her blue scarf","blue scarf"],o:["her old blue scarf","a red hat","a warm coat"],a:0,k:"give",say:"She <b>gave</b> it <b>her old blue scarf</b>."},
+ {q:"What {did#put} Tom {put#put} on the snowman's face?",o:["a carrot","a stone","a hat"],a:0,k:"put",say:"Tom <b>put</b> <b>a carrot</b> on its face for a nose."},
+ {q:"Which animal {sat#sit} on the snowman's head?",o:["a little bird","a cat","a mouse"],a:0,k:"sit",say:"<b>A little bird</b> <b>sat</b> on his head."},
+ {q:"When {did#fall} the snow {fall#fall}? <span class=\"skillpill\">write 2 words</span>",type:"type",acc:["all night","at night","in the night","night"],o:["all night","all morning","for a week"],a:0,k:"fall",say:"The snow <b>fell</b> <b>all night</b>."}]},
+{title:"Danny's Lost Shoe 👟",
+ text:"Danny {is#be} a football player. His lucky shoes {are#be2} green and very old. Before every match, he {puts#put} them on carefully. Today he {finds#find} only one shoe! He {looks#look} under his bed and behind the door. Then his dog Rocky {runs#run} into the room with the other shoe in his mouth! Danny {laughs#laugh} and {gives#give} Rocky a big hug.",
+ pairs:{be:{now:"is",past:"was"},be2:{now:"are",past:"were"},put:{now:"puts",past:"put"},find:{now:"finds",past:"found",q:"did … find"},look:{now:"looks",past:"looked",q:"did … look"},run:{now:"runs",past:"ran"},laugh:{now:"laughs",past:"laughed"},give:{now:"gives",past:"gave",q:"did … give"}},
+ qs:[
+ {q:"How many shoes {did#find} Danny {find#find} at first?",o:["only one","two","three"],a:0,k:"find",say:"He <b>found</b> <b>only one</b> shoe."},
+ {q:"What colour {were#be2} Danny's lucky shoes? <span class=\"skillpill\">write 1 word</span>",type:"type",acc:["green"],o:["green","black","white"],a:0,k:"be2",say:"His lucky shoes <b>were</b> <b>green</b>."},
+ {q:"Where {did#look} Danny {look#look} for the shoe?",o:["under his bed","in the garden","in his school bag"],a:0,k:"look",say:"He <b>looked</b> <b>under his bed</b> and behind the door."},
+ {q:"Who {ran#run} into the room with the shoe? <span class=\"skillpill\">write 1–3 words</span>",type:"type",acc:["rocky","his dog","his dog rocky","the dog","rocky the dog"],o:["his dog Rocky","his brother","his mum"],a:0,k:"run",say:"<b>His dog Rocky</b> <b>ran</b> in with the other shoe."},
+ {q:"What {did#give} Danny {give#give} Rocky?",o:["a big hug","a green shoe","some food"],a:0,k:"give",say:"Danny <b>gave</b> Rocky <b>a big hug</b>."}]},
+{title:"Aunt Mai's Market 🧺",
+ text:"Every Sunday morning, Aunt Mai {goes#go} to the market near the river. She {buys#buy} fresh fish, green vegetables and sweet mangoes. Her basket {is#be} always very heavy! Today her nephew Long {carries#carry} it for her. At the last shop, the woman {gives#give} Long a free banana because he {helps#help} his aunt.",
+ pairs:{go:{now:"goes",past:"went",q:"did … go"},buy:{now:"buys",past:"bought",q:"did … buy"},be:{now:"is",past:"was"},carry:{now:"carries",past:"carried"},give:{now:"gives",past:"gave",q:"did … give"},help:{now:"helps",past:"helped"}},
+ qs:[
+ {q:"Where {did#go} Aunt Mai {go#go} every Sunday?",o:["to the market","to the beach","to school"],a:0,k:"go",say:"She <b>went</b> <b>to the market</b> near the river."},
+ {q:"Which fruit {did#buy} Aunt Mai {buy#buy}? <span class=\"skillpill\">write 1–2 words</span>",type:"type",acc:["mangoes","mango","sweet mangoes","bananas"],o:["sweet mangoes","red apples","green grapes"],a:0,k:"buy",say:"She <b>bought</b> fish, vegetables and <b>sweet mangoes</b>."},
+ {q:"Who {carried#carry} the heavy basket?",o:["her nephew Long","Aunt Mai","the woman in the shop"],a:0,k:"carry",say:"<b>Her nephew Long</b> <b>carried</b> it for her."},
+ {q:"What {did#give} the woman {give#give} Long? <span class=\"skillpill\">write 2–3 words</span>",type:"type",acc:["a free banana","free banana","a banana","banana"],o:["a free banana","a fresh fish","some money"],a:0,k:"give",say:"She <b>gave</b> him <b>a free banana</b>."},
+ {q:"Who {helped#help} Aunt Mai at the market?",o:["Long","the woman in the shop","her sister"],a:0,k:"help",say:"<b>Long</b> <b>helped</b> his aunt, so he got a free banana."}]},
+{title:"The Friendly Whale 🐋",
+ text:"Captain Ana {sails#sail} a boat near the islands. Her boat {is#be} small and blue. Every morning she {takes#take} visitors out to look for whales. Today a huge grey whale {swims#swim} next to the boat for ten minutes. The children {shout#shout} with excitement. The whale {jumps#jump} out of the water, and everybody {gets#get} wet! Ana {laughs#laugh} and {says#say}, “That is her way of saying hello.”",
+ pairs:{sail:{now:"sails",past:"sailed"},be:{now:"is",past:"was"},take:{now:"takes",past:"took"},swim:{now:"swims",past:"swam",q:"did … swim"},shout:{now:"shout",past:"shouted"},jump:{now:"jumps",past:"jumped",q:"did … jump"},get:{now:"gets",past:"got"},laugh:{now:"laughs",past:"laughed"},say:{now:"says",past:"said",q:"did … say"}},
+ qs:[
+ {q:"What colour {was#be} Ana's boat?",o:["blue","green","red"],a:0,k:"be",say:"Her boat <b>was</b> small and <b>blue</b>."},
+ {q:"How long {did#swim} the whale {swim#swim} next to the boat? <span class=\"skillpill\">write 2 words</span>",type:"type",acc:["ten minutes","10 minutes","for ten minutes"],o:["ten minutes","two hours","all day"],a:0,k:"swim",say:"It <b>swam</b> next to the boat for <b>ten minutes</b>."},
+ {q:"What {did#jump} the whale {jump#jump} out of?",o:["the water","the boat","a net"],a:0,k:"jump",say:"The whale <b>jumped</b> out of <b>the water</b>."},
+ {q:"Who {got#get} wet?",o:["everybody on the boat","only Ana","only the children"],a:0,k:"get",say:"<b>Everybody</b> <b>got</b> wet!"},
+ {q:"What {did#say} Ana {say#say} the whale was doing? <span class=\"skillpill\">write 2 words</span>",type:"type",acc:["saying hello","say hello","hello"],o:["saying hello","looking for food","playing a game"],a:0,k:"say",say:"Ana <b>said</b> it was the whale's way of <b>saying hello</b>."}]}
+];
+
+const PARTS = {
+ p4:{name:"Verb Detective",emoji:"🔍",tip:"Read the whole sentence first. Who is doing it? When is it happening?"},
+ p6:{name:"Word Builder",emoji:"🧱",tip:"Little words matter: a / an / the, in / on / at, do / does, he / him / his."},
+ p5:{name:"Tense Time Machine",emoji:"⏰",tip:"Story is now ➜ question is in the past. did + plain verb = a past question!"}
+};
+const GOOD=["Hoot hoot! Super! 🌟","Wow, you're a grammar star! ⭐","Brilliant thinking! 🧠","Yes! Keep flying! 🪁","Amazing! You found it! 🎉"];
+const BAD=["Good try! Let's learn the trick. 🔍","Mistakes help us learn! 🌱","Nearly! Read my tip. 💡","That's okay — you'll get the next one! 💪"];
+const COLORS=["#ff5fa2","#2f80ed","#ff9f1c","#22b573","#7c4ddb","#0ea5a0","#e0457b","#d98a00","#1f9bd6"];
+
+/* ===================== HELPERS ===================== */
+const $=s=>document.querySelector(s);
+const $$=s=>[...document.querySelectorAll(s)];
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const norm=w=>String(w).trim().toLowerCase().replace(/[’‘]/g,"'").replace(/[.!?,]/g,"").replace(/\s+/g," ");
+
+const KEY="flyersQuest.v2";
+function loadDB(){try{return JSON.parse(localStorage.getItem(KEY))||{}}catch(e){return{}}}
+function saveDB(){try{localStorage.setItem(KEY,JSON.stringify(DB))}catch(e){}}
+let DB=Object.assign({name:"",stars:0,best:{},muted:false,weak:{},seen6:{},seen5:{}},loadDB());
+["best","weak","seen6","seen5"].forEach(k=>{if(!DB[k]||typeof DB[k]!=="object")DB[k]={}});
+let S={};
+
+/* Sound */
+let ctx=null;
+function ac(){if(!ctx){try{ctx=new(window.AudioContext||window.webkitAudioContext)()}catch(e){ctx=null}}if(ctx&&ctx.state==="suspended")ctx.resume();return ctx;}
+function tone(f,t0,dur,type="triangle",vol=.16){
+  if(DB.muted)return;const c=ac();if(!c)return;
+  const o=c.createOscillator(),g=c.createGain(),t=c.currentTime+t0;
+  o.type=type;o.frequency.setValueAtTime(f,t);
+  g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(vol,t+.02);g.gain.exponentialRampToValueAtTime(.0001,t+dur);
+  o.connect(g);g.connect(c.destination);o.start(t);o.stop(t+dur+.05);
+}
+const sfx={tap(){tone(660,0,.08,"triangle",.07)},pop(){tone(880,0,.07,"sine",.1);tone(1320,.06,.08,"sine",.07)},
+ good(){[523,659,784,1047].forEach((f,i)=>tone(f,i*.09,.25))},bad(){tone(330,0,.2,"sine",.12);tone(262,.17,.3,"sine",.12)},
+ win(){[523,659,784,659,784,1047,1319].forEach((f,i)=>tone(f,i*.12,.32))}};
+
+function burst(n=24){
+  const fx=$("#fx"),em=["⭐","🌟","✨","🎉","💛","🎈"];
+  for(let i=0;i<n;i++){const s=document.createElement("span");s.className="conf";s.textContent=em[i%em.length];
+   s.style.left=(Math.random()*100)+"vw";s.style.fontSize=(22+Math.random()*24)+"px";
+   s.style.animationDuration=(1.3+Math.random()*1.2)+"s";s.style.animationDelay=(Math.random()*.3)+"s";
+   fx.appendChild(s);setTimeout(()=>s.remove(),3000);}
+}
+function owl(mood="happy"){
+  const eye=cx=>mood==="happy"
+   ?`<circle cx="${cx}" cy="44" r="13" fill="#fff"/><path d="M${cx-7} 47 q7 -10 14 0" stroke="#27204d" stroke-width="4" fill="none" stroke-linecap="round"/>`
+   :`<circle cx="${cx}" cy="44" r="13" fill="#fff"/><circle cx="${cx+(mood==="think"?3:0)}" cy="${mood==="think"?40:45}" r="6.5" fill="#27204d"/><circle cx="${cx+(mood==="think"?5:2)}" cy="${mood==="think"?38:43}" r="2.2" fill="#fff"/>`;
+  return `<svg viewBox="0 0 100 114" aria-hidden="true">
+   <polygon points="18,24 28,4 40,20" fill="#6a3fc6"/><polygon points="82,24 72,4 60,20" fill="#6a3fc6"/>
+   <ellipse cx="50" cy="62" rx="40" ry="44" fill="#7c4ddb"/>
+   <ellipse cx="13" cy="70" rx="10" ry="22" fill="#6a3fc6"/><ellipse cx="87" cy="70" rx="10" ry="22" fill="#6a3fc6"/>
+   <ellipse cx="50" cy="80" rx="24" ry="24" fill="#ffd9a8"/>
+   <path d="M38 75 q4 4 8 0 M54 75 q4 4 8 0 M46 87 q4 4 8 0" stroke="#efb46c" stroke-width="3" fill="none" stroke-linecap="round"/>
+   <circle cx="34" cy="44" r="17" fill="#fff1cf"/><circle cx="66" cy="44" r="17" fill="#fff1cf"/>
+   ${eye(34)}${eye(66)}
+   <polygon points="44,55 56,55 50,65" fill="#ff9f1c"/>
+   ${mood==="happy"?'<circle cx="20" cy="58" r="5" fill="#ff8fc0" opacity=".8"/><circle cx="80" cy="58" r="5" fill="#ff8fc0" opacity=".8"/>':''}
+   <path d="M38 105 l-4 6 M42 105 v7 M46 105 l4 6 M58 105 l-4 6 M62 105 v7 M66 105 l4 6" stroke="#ff9f1c" stroke-width="3.5" stroke-linecap="round"/>
+  </svg>`;
+}
+const coach=(t,m="happy")=>`<div class="coach">${owl(m)}<div class="bubble">${t}</div></div>`;
+function setCoach(t,m){const c=$("#coach");if(!c)return;c.innerHTML=coach(t,m);c.firstElementChild.classList.add("bounce");}
+function screen(html){const m=$("#screen");m.innerHTML=`<div class="wrap">${html}</div>`;m.scrollTop=0;}
+function updateStars(p){$("#starCount").textContent=DB.stars;if(p){const el=$("#starPill");el.classList.remove("pop");void el.offsetWidth;el.classList.add("pop");}}
+function addStar(){DB.stars++;saveDB();updateStars(true);}
+function header(title,done,total){
+  return `<div class="flex items-center justify-between gap-3 flex-wrap">
+   <h1 class="ptitle">${title}</h1><div class="scorepill">⭐ ${S.score} / ${S.total}</div></div>
+   <div class="prog" aria-label="Progress"><div style="width:${Math.round(done/total*100)}%"></div></div>`;
+}
+function noteResult(tag,ok){
+  if(!tag)return;
+  S.missed=S.missed||{};
+  if(ok){ if(DB.weak[tag]) DB.weak[tag]=Math.max(0,DB.weak[tag]-1); }
+  else { DB.weak[tag]=(DB.weak[tag]||0)+1; S.missed[tag]=(S.missed[tag]||0)+1; }
+  saveDB();
+}
+function showModal({ok,rule,body,extra="",btn="Next ➜",next}){
+  const m=$("#modal");
+  m.innerHTML=`<div class="sheet ${ok?"ok":"no"}">
+   <div class="sheet-head">${ok?"⭐ Brilliant!":"🌱 Nearly! Here's the trick"}</div>
+   <div class="sheet-body">
+    <div class="flex gap-3 items-start">${owl(ok?"happy":"think")}
+     <div><div class="helperlbl">Ollie's Grammar Helper</div><div class="rulechip">🧠 ${rule}</div>
+     <p class="explain">${body}</p></div></div>
+    ${extra}
+    <button class="btn btn-blue w-full" id="modalNext">${btn}</button>
+   </div></div>`;
+  m.classList.add("show");
+  const b=$("#modalNext");b.focus({preventScroll:true});
+  b.onclick=()=>{sfx.tap();m.classList.remove("show");m.innerHTML="";next&&next();};
+}
+/* pick items, favouring skills she has missed before */
+function weightedPick(list,n,tagOf){
+  return list.map(it=>({it,w:Math.random()+.8*Math.min(DB.weak[tagOf(it)]||0,3)}))
+             .sort((a,b)=>b.w-a.w).slice(0,n).map(x=>x.it);
+}
+function leastSeen(list,n,seenMap){
+  return list.map((it,i)=>({it,i,w:(seenMap[i]||0)+Math.random()*.9}))
+             .sort((a,b)=>a.w-b.w).slice(0,n)
+             .map(x=>{seenMap[x.i]=(seenMap[x.i]||0)+1;return x.it;});
+}
+
+/* ===================== HOME ===================== */
+const trophyFor=k=>["🎖️","🥉","🥈","🏆"][k]??"▫️";
+function home(){
+  S={};$("#homeBtn").style.visibility="hidden";
+  const nm=DB.name?esc(DB.name):"Flyer";
+  const best=p=>DB.best[p]?`${trophyFor(DB.best[p].k)} Best: ${DB.best[p].score}/${DB.best[p].total}`:"✨ Not played yet";
+  const weak=Object.entries(DB.weak).filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]).slice(0,4);
+  screen(`
+   <div class="card flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+    <div id="coach">${coach(`Hi ${nm}! I'm Ollie the Owl. Which game shall we play today?`)}</div>
+    <label class="flex flex-col gap-1 font-bold" style="color:var(--muted)">Your name
+     <input id="nameIn" class="nameIn" maxlength="16" autocomplete="off" autocapitalize="words" spellcheck="false" placeholder="Type your name" value="${esc(DB.name)}">
+    </label>
+   </div>
+   <div class="grid gap-4 md:grid-cols-3">
+    <button class="game g4" data-go="p4"><span class="emo">🔍</span><span class="gp">Part 4</span><span class="gt">Verb Detective</span><span class="gd">10 sentences from a big question box — verbs, modals, prepositions and more.</span><span class="best">${best("p4")}</span></button>
+    <button class="game g6" data-go="p6"><span class="emo">🧱</span><span class="gp">Part 6</span><span class="gt">Word Builder</span><span class="gd">Two stories, ten gaps. Type the missing little word or tap one.</span><span class="best">${best("p6")}</span></button>
+    <button class="game g5" data-go="p5"><span class="emo">⏰</span><span class="gp">Part 5</span><span class="gt">Tense Time Machine</span><span class="gd">Stories happen now, questions ask about the past. Some answers you write yourself.</span><span class="best">${best("p5")}</span></button>
+   </div>
+   <div class="card"><div class="storytitle">🏆 My trophy shelf</div>
+    <div class="shelf">${["p4","p6","p5"].map(p=>`<div class="slot"><div class="t">${DB.best[p]?trophyFor(DB.best[p].k):"▫️"}</div>${PARTS[p].name}</div>`).join("")}</div>
+    ${weak.length?`<div class="weakbox" style="margin-top:14px"><b style="font-size:19px">🎯 Ollie is giving you extra practice with:</b><ul>${weak.map(([t])=>`<li>• ${t}</li>`).join("")}</ul></div>`:""}
+   </div>`);
+  $$("[data-go]").forEach(b=>b.onclick=()=>{sfx.pop();({p4:startP4,p6:startP6,p5:startP5})[b.dataset.go]();});
+  const ni=$("#nameIn");
+  ni.onchange=ni.onblur=()=>{DB.name=ni.value.trim().slice(0,16);saveDB();};
+  ni.onkeydown=e=>{if(e.key==="Enter"){ni.blur();home();}};
+}
+
+/* ===================== PART 4 ===================== */
+function startP4(){
+  S={part:"p4",items:shuffle(weightedPick(P4,10,it=>it.t)),idx:0,score:0,total:10,missed:{}};
+  $("#homeBtn").style.visibility="visible";renderP4();
+}
+function renderP4(){
+  const q=S.items[S.idx];S.answered=false;
+  const sent=q.s.replace(/\[\[(.+?)\]\]/g,'<span class="clue">$1</span>').replace("___",'<span class="blank" id="blank">?</span>');
+  const opts=shuffle(q.o.map((t,i)=>({t,i})));
+  screen(`${header("🔍 Verb Detective",S.idx,S.total)}
+   <div id="coach">${coach(S.idx===0?"Read the whole sentence. Look for the clue words! 🔍":`Question ${S.idx+1}. You can do it! 💪`)}</div>
+   <div class="card"><div class="skillpill">${q.t}</div>
+    <div class="sentence mt-2" id="sent">${sent}</div>
+    <button class="cluebtn" id="clueBtn">💡 Show me the clue</button></div>
+   <div class="grid gap-3 sm:grid-cols-3">${opts.map(o=>`<button class="opt" data-i="${o.i}">${esc(o.t)}</button>`).join("")}</div>`);
+  $("#clueBtn").onclick=()=>{sfx.pop();$("#sent").classList.add("show-clue");setCoach("Look at the yellow words. Who? When? 🤔","think");};
+  $$(".opt").forEach(b=>b.onclick=()=>answerP4(+b.dataset.i,b));
+}
+function answerP4(i,btn){
+  if(S.answered)return;S.answered=true;
+  const q=S.items[S.idx],ok=i===q.a;
+  $$(".opt").forEach(b=>{b.disabled=true;const bi=+b.dataset.i;if(bi===q.a)b.classList.add("right");else if(b===btn)b.classList.add("wrong");else b.classList.add("dim");});
+  const bl=$("#blank");bl.textContent=q.o[q.a];bl.classList.add(ok?"ok":"fix");
+  $("#sent").classList.add("show-clue");$("#clueBtn").style.display="none";
+  noteResult(q.t,ok);
+  if(ok){S.score++;addStar();sfx.good();burst(18);}else sfx.bad();
+  setCoach(ok?pick(GOOD):pick(BAD),ok?"happy":"think");
+  setTimeout(()=>showModal({ok,rule:q.r,body:q.e,
+   extra:ok?"":`<div class="answerline">✅ The answer is: <b style="color:var(--leaf)">${esc(q.o[q.a])}</b></div>`,
+   btn:S.idx+1<S.items.length?"Next question ➜":"See my trophy 🏆",
+   next:()=>{S.idx++;S.idx<S.items.length?renderP4():summary();}}),700);
+}
+
+/* ===================== PART 6 ===================== */
+function startP6(){
+  const stories=leastSeen(P6,2,DB.seen6);saveDB();
+  S={part:"p6",stories,sIdx:0,score:0,total:stories.reduce((a,s)=>a+s.blanks.length,0),missed:{}};
+  $("#homeBtn").style.visibility="visible";loadStory6();
+}
+function loadStory6(){
+  const st=S.stories[S.sIdx];S.fill=st.blanks.map(()=>null);S.cur=0;S.order=st.blanks.map(b=>shuffle(b.o));renderP6(true);
+}
+function renderP6(first){
+  const st=S.stories[S.sIdx];
+  const done=S.stories.slice(0,S.sIdx).reduce((a,s)=>a+s.blanks.length,0)+S.fill.filter(Boolean).length;
+  const text=st.text.replace(/\{(\d)\}/g,(m,n)=>{n=+n;const f=S.fill[n];
+   const cls=f?(f.ok?"gap ok":"gap fix"):(n===S.cur?"gap cur":"gap");
+   return `<button class="${cls}" data-n="${n}" ${f?"disabled":""} aria-label="Gap ${n+1}"><span class="gapnum">${n+1}</span>${f?esc(f.word):"&nbsp;"}</button>`;});
+  screen(`${header("🧱 Word Builder",done,S.total)}
+   <div id="coach">${coach(first?`Story ${S.sIdx+1} of ${S.stories.length}! Type the missing word, or tap one. ✏️`:"Which little word fits? Read the words around the gap! 👀")}</div>
+   <div class="card"><div class="storytitle">${st.title}</div><p class="storytext">${text}</p></div>
+   <div class="card">
+    <div class="lbl">Gap ${S.cur+1}: type the missing word</div>
+    <div class="flex gap-3">
+     <input id="typeIn" class="typein" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="done" placeholder="Type here…" aria-label="Missing word">
+     <button id="checkBtn" class="btn btn-pink">Check ✓</button>
+    </div>
+    <div class="lbl" style="margin-top:14px">…or tap a word:</div>
+    <div class="chips">${S.order[S.cur].map(w=>`<button class="chip" data-w="${esc(w)}">${esc(w)}</button>`).join("")}</div>
+   </div>`);
+  $$(".gap:not([disabled])").forEach(g=>g.onclick=()=>{sfx.tap();S.cur=+g.dataset.n;renderP6();});
+  const inp=$("#typeIn");
+  const check=()=>{const v=inp.value.trim();if(!v){inp.classList.remove("shake");void inp.offsetWidth;inp.classList.add("shake");return;}inp.blur();answerP6(v);};
+  $("#checkBtn").onclick=check;
+  inp.onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();check();}};
+  $$(".chip").forEach(c=>c.onclick=()=>answerP6(c.dataset.w));
+}
+function answerP6(word){
+  if(S.busy)return;S.busy=true;
+  const st=S.stories[S.sIdx],n=S.cur,b=st.blanks[n];
+  const ok=[b.a,...(b.alt||[])].map(norm).includes(norm(word));
+  S.fill[n]={word:b.a,ok};
+  noteResult(b.t,ok);
+  if(ok){S.score++;addStar();sfx.good();burst(16);}else sfx.bad();
+  const nextGap=S.fill.findIndex(f=>!f);
+  const storyDone=nextGap===-1,allDone=storyDone&&S.sIdx+1>=S.stories.length;
+  if(!storyDone)S.cur=nextGap;
+  renderP6();
+  $$(".chip,#checkBtn,#typeIn").forEach(el=>el.disabled=true);
+  setCoach(ok?pick(GOOD):pick(BAD),ok?"happy":"think");
+  setTimeout(()=>{S.busy=false;showModal({ok,rule:b.r,body:b.e,
+   extra:ok?"":`<div class="answerline">You wrote: <b>${esc(word)}</b><br>✅ The answer is: <b style="color:var(--leaf)">${esc(b.a)}</b></div>`,
+   btn:allDone?"See my trophy 🏆":storyDone?"Next story 📖":"Next gap ➜",
+   next:()=>{if(!storyDone)renderP6();else if(!allDone){S.sIdx++;loadStory6();}else summary();}});},650);
+}
+
+/* ===================== PART 5 ===================== */
+function startP5(){
+  const stories=leastSeen(P5,2,DB.seen5);saveDB();
+  S={part:"p5",stories,sIdx:0,qIdx:0,score:0,total:stories.reduce((a,s)=>a+s.qs.length,0),helper:false,missed:{}};
+  $("#homeBtn").style.visibility="visible";renderP5();
+}
+const tagVerbs=str=>str.replace(/\{([^#}]+)#([^}]+)\}/g,'<span class="vb" data-k="$2">$1</span>');
+const colorFor=(st,k)=>COLORS[Object.keys(st.pairs).indexOf(k)%COLORS.length];
+function renderP5(showChoices){
+  const st=S.stories[S.sIdx],q=st.qs[S.qIdx];S.answered=false;
+  const keys=[...new Set([...q.q.matchAll(/#([^}]+)\}/g)].map(m=>m[1]))];
+  const hasDid=/\{did#/.test(q.q);
+  const bridge=keys.map(k=>{const p=st.pairs[k],c=colorFor(st,k);
+   return `<div class="brow"><span class="bw" style="--c:${c}">📖 ${p.now}</span><span class="arrow">➜</span><span class="bw" style="--c:${c}">🕰️ ${p.past}</span>${p.q?`<span class="qnote">the question says <b>${p.q}</b></span>`:""}</div>`;}).join("");
+  const done=S.stories.slice(0,S.sIdx).reduce((a,s)=>a+s.qs.length,0)+S.qIdx;
+  const typing=q.type==="type"&&!showChoices;
+  const opts=shuffle(q.o.map((t,i)=>({t,i})));
+  screen(`${header("⏰ Tense Time Machine",done,S.total)}
+   <div class="flex items-center justify-between gap-3 flex-wrap">
+    <div id="coach">${coach(S.qIdx===0?"The story happens NOW. The questions ask about the PAST! 🕰️":"Find the same action in the story! 🔎")}</div>
+    <button id="helperBtn" class="toggle ${S.helper?"on":""}" aria-pressed="${S.helper}">🔮 Tense Helper: <b>${S.helper?"ON":"OFF"}</b></button>
+   </div>
+   <div class="grid md:grid-cols-2 gap-4 items-start">
+    <div class="card"><span class="tag now-tag">📖 Story — happening now</span>
+     <div class="storytitle">${st.title}</div><p class="storytext" id="storyText">${tagVerbs(st.text)}</p></div>
+    <div class="flex flex-col gap-3">
+     <div class="card"><span class="tag past-tag">❓ Question ${S.qIdx+1} of ${st.qs.length} — in the past</span>
+      <p class="question">${tagVerbs(q.q)}</p>
+      <div class="bridge" id="bridge">${bridge}${hasDid?'<div class="didtip">💡 <b>did</b> + plain verb = a past question!</div>':""}</div>
+     </div>
+     ${typing?`<div class="card">
+       <div class="lbl">Write your answer</div>
+       <div class="flex gap-3"><input id="typeIn" class="typein" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="done" placeholder="Type here…" aria-label="Your answer">
+        <button id="checkBtn" class="btn btn-pink">Check ✓</button></div>
+       <button class="cluebtn" id="showChoices">👀 Show me 3 answers</button></div>`
+      :`<div class="grid gap-3">${opts.map(o=>`<button class="opt" data-i="${o.i}">${esc(o.t)}</button>`).join("")}</div>`}
+    </div></div>`);
+  applyHelper(keys);
+  $("#helperBtn").onclick=()=>{S.helper=!S.helper;sfx.pop();
+   const b=$("#helperBtn");b.classList.toggle("on",S.helper);b.setAttribute("aria-pressed",S.helper);b.innerHTML=`🔮 Tense Helper: <b>${S.helper?"ON":"OFF"}</b>`;
+   applyHelper(keys);
+   if(S.helper)setCoach("Same colour = same action! The story word is NOW, the question word is PAST. ✨","happy");};
+  if(typing){
+   const inp=$("#typeIn");
+   const check=()=>{const v=inp.value.trim();if(!v){inp.classList.remove("shake");void inp.offsetWidth;inp.classList.add("shake");return;}inp.blur();answerP5typed(v);};
+   $("#checkBtn").onclick=check;
+   inp.onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();check();}};
+   $("#showChoices").onclick=()=>{sfx.tap();renderP5(true);};
+  }else $$(".opt").forEach(b=>b.onclick=()=>answerP5(+b.dataset.i,b));
+}
+function applyHelper(keys){
+  const st=S.stories[S.sIdx];
+  $$(".vb").forEach(el=>{el.style.setProperty("--c",colorFor(st,el.dataset.k));el.classList.toggle("on",!!S.helper);
+   el.classList.toggle("focus",!!S.helper&&!!el.closest("#storyText")&&keys.includes(el.dataset.k));});
+  const br=$("#bridge");if(br)br.classList.toggle("show",!!S.helper);
+}
+function finishP5(ok,given){
+  const st=S.stories[S.sIdx],q=st.qs[S.qIdx],p=st.pairs[q.k];
+  noteResult(`Past tense: ${p.now} ➜ ${p.past}`,ok);
+  if(!S.helper){S.helper=true;const hb=$("#helperBtn");if(hb){hb.classList.add("on");hb.innerHTML="🔮 Tense Helper: <b>ON</b>";}applyHelper([q.k]);}
+  if(ok){S.score++;addStar();sfx.good();burst(18);}else sfx.bad();
+  setCoach(ok?pick(GOOD):pick(BAD),ok?"happy":"think");
+  const lastQ=S.qIdx+1>=st.qs.length,lastStory=S.sIdx+1>=S.stories.length;
+  setTimeout(()=>showModal({ok,rule:`${p.now} ➜ ${p.past}`,
+   body:`In the story (now): <b>${p.now}</b>.<br>In the question (past): <b>${p.q||p.past}</b>.<br>Same action — different time!`,
+   extra:`<div class="answerline">${given!==undefined&&!ok?`You wrote: <b>${esc(given)}</b><br>`:""}✅ ${q.say}</div>`,
+   btn:lastQ&&lastStory?"See my trophy 🏆":lastQ?"Next story 📖":"Next question ➜",
+   next:()=>{S.qIdx++;if(S.qIdx>=st.qs.length){S.qIdx=0;S.sIdx++;}S.sIdx<S.stories.length?renderP5():summary();}}),700);
+}
+function answerP5(i,btn){
+  if(S.answered)return;S.answered=true;
+  const q=S.stories[S.sIdx].qs[S.qIdx],ok=i===q.a;
+  $$(".opt").forEach(b=>{b.disabled=true;const bi=+b.dataset.i;if(bi===q.a)b.classList.add("right");else if(b===btn)b.classList.add("wrong");else b.classList.add("dim");});
+  finishP5(ok);
+}
+function answerP5typed(v){
+  if(S.answered)return;S.answered=true;
+  const q=S.stories[S.sIdx].qs[S.qIdx];
+  const ok=(q.acc||[]).map(norm).includes(norm(v));
+  ["#typeIn","#checkBtn","#showChoices"].forEach(s=>{const el=$(s);if(el)el.disabled=true;});
+  finishP5(ok,v);
+}
+
+/* ===================== SUMMARY ===================== */
+function summary(){
+  const pct=S.score/S.total;
+  const t=pct>=.8?{k:3,n:"Gold Trophy",m:"You're a Flyers champion!"}
+        :pct>=.6?{k:2,n:"Silver Trophy",m:"Great work! Gold is very close!"}
+        :pct>=.4?{k:1,n:"Bronze Trophy",m:"Good job! Play again to shine brighter!"}
+        :{k:0,n:"Brave Learner Badge",m:"Every try makes your brain stronger!"};
+  const prev=DB.best[S.part];
+  if(!prev||S.score/S.total>prev.score/prev.total){DB.best[S.part]={k:t.k,score:S.score,total:S.total};}
+  saveDB();sfx.win();burst(40);
+  const part=S.part;
+  const missed=Object.entries(S.missed||{}).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  screen(`<div class="card text-center flex flex-col items-center gap-3" style="padding:26px 18px">
+   <div class="trophy">${trophyFor(t.k)}</div>
+   <h1 class="ptitle">${t.n}!</h1>
+   <p style="font-size:22px;font-weight:700">${PARTS[part].emoji} ${PARTS[part].name}: <b>${S.score}</b> out of <b>${S.total}</b></p>
+   <div class="starrow">${"⭐".repeat(S.score)}${"☆".repeat(Math.max(0,S.total-S.score))}</div>
+   <div id="coach" class="text-left">${coach(`${t.m} ${PARTS[part].tip}`)}</div>
+   ${missed.length?`<div class="weakbox w-full"><b style="font-size:20px">🎯 Let's practise these next time:</b><ul>${missed.map(([tag,n])=>`<li>• ${tag} <span class="skillpill">${n} to fix</span></li>`).join("")}</ul></div>`
+    :`<div class="weakbox w-full" style="background:var(--good-bg)"><b style="font-size:20px">🌈 No mistakes at all — amazing!</b></div>`}
+   <div class="flex flex-wrap gap-3 justify-center mt-2">
+    <button class="btn btn-pink" id="againBtn">🔁 Play again</button>
+    <button class="btn btn-soft" id="menuBtn">🏠 Choose a game</button>
+   </div></div>`);
+  $("#againBtn").onclick=()=>{sfx.pop();({p4:startP4,p6:startP6,p5:startP5})[part]();};
+  $("#menuBtn").onclick=()=>{sfx.tap();home();};
+}
+
+/* ===================== INIT ===================== */
+$("#homeBtn").onclick=()=>{sfx.tap();$("#modal").classList.remove("show");home();};
+const mb=$("#muteBtn");
+const setMuteIcon=()=>{mb.textContent=DB.muted?"🔇":"🔊";};
+mb.onclick=()=>{DB.muted=!DB.muted;saveDB();setMuteIcon();sfx.tap();};
+setMuteIcon();updateStars();home();
+</script>
+</body>
+</html>
